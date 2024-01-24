@@ -1,0 +1,7 @@
+cd home
+cd ubh01
+cd hadoop-2.7.1
+cd sbin
+./start-dfs.sh
+jps
+hive
