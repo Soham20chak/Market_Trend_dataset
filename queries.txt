@@ -1,0 +1,63 @@
+Total Revenue Analysis:
+	Calculate total revenue generated from all purchases.
+		SELECT sum(price) FROM bigdata.market_trend;
+	Analyze total revenue by category or item.
+		SELECT item,sum(price) FROM bigdata.market_trend group by item  ;
+
+Customer Analysis:
+	Analyze the gender distribution of customers.
+		SELECT gender,count(*) from bigdata.market_trend group by gender ;
+		
+	Identify the top-spending customers.
+		SELECT id,price from bigdata.market_trend order by price desc limit 10 ;
+		
+Product Analysis:
+	Analyze the popularity of items or categories.
+		select item,count(*) from bigdata.market_trend group by item order by count(*) desc, item desc ;
+	Analyze the average price of items.
+		select item,avg(price) from bigdata.market_trend group by item order by avg(price) desc ;
+
+Location Analysis:
+	Analyze sales performance by location.
+		select location,sum(price) from bigdata.market_trend group by location order by sum(price) ;
+	Identify regions with the highest and lowest sales.
+		select location,sum(price) from bigdata.market_trend group by location order by sum(price) desc limit 1;
+		select location,sum(price) from bigdata.market_trend group by location order by sum(price) limit 1;
+
+Customer Segmentation:
+		SELECT gender, location, COUNT(*) AS total_purchases,AVG(price) AS avg_purchase_amount FROM bigdata.market_trend
+		GROUP BY gender, location;
+
+Seasonal Analysis:
+		SELECT season, COUNT(*) AS total_purchases,SUM(price) AS total_sales FROM bigdata.market_trend GROUP BY season;
+
+Review Rating Analysis:
+		SELECT item, category, AVG(rating) AS avg_review_rating FROM bigdata.market_trend GROUP BY item, category order by avg(rating) desc;
+
+Subscription Analysis:
+		SELECT subs, COUNT(*) AS total_subscriptions FROM bigdata.market_trend GROUP BY subs;
+Payment Method Analysis:
+		SELECT payment, COUNT(*) AS total_payments FROM bigdata.market_trend GROUP BY payment;
+Frequency of Purchases Analysis:
+		SELECT freq,count(*) from bigdata.market_trend group by freq;
+
+
+
+View of product_trend :
+CREATE VIEW product_shopping_insights AS
+SELECT
+    item,
+    COUNT(item) AS total_items_purchased,
+    SUM(price) AS total_spending,
+    AVG(rating) AS average_rating,
+    category as CATEGORY
+    
+FROM
+    bigdata.market_trend
+GROUP BY
+    item,category;
+		
+
+select * from product_shopping_insights order by average_rating desc;
+
+
