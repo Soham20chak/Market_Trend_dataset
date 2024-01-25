@@ -4,4 +4,15 @@ cd hadoop-2.7.1
 cd sbin
 ./start-dfs.sh
 jps
+hadoop fs -mkdir /home/ubh01/hadoop-2.7.1/sbin/marketdata
+hadoop fs -put /home/ubh01/Downloads/shopping_trends.csv /home/ubh01/hadoop-2.7.1/sbin/marketdata
+
+
+
+
+
+
+
 hive
+use default;
+create table market_trend(id int,age int,gender string,items string,category string,amount int,location string,size string,color string,season string,rating float,subs string) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/hadoop-2.7.1/sbin/marketdata/';
