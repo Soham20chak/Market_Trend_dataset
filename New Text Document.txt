@@ -16,3 +16,12 @@ hadoop fs -put /home/ubh01/Downloads/shopping_trends.csv /home/ubh01/hadoop-2.7.
 hive
 use default;
 create table market_trend(id int,age int,gender string,items string,category string,amount int,location string,size string,color string,season string,rating float,subs string) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/hadoop-2.7.1/sbin/marketdata/';
+
+
+partitioning :
+static -
+create table static_partition_table(id int,age int,gender string,items string,category string,amount int,size string,color string,season string,rating float,subs string) partitioned by (location string);
+
+insert into table static_partition_table partition(location='Oregon') select id,age,gender,items,category,amount,size,color,season,rating,subs from market_trend where location='Oregon';
+
+select * from static_partition_table;
