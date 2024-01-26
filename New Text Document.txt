@@ -25,3 +25,15 @@ create table static_partition_table(id int,age int,gender string,items string,ca
 insert into table static_partition_table partition(location='Oregon') select id,age,gender,items,category,amount,size,color,season,rating,subs from market_trend where location='Oregon';
 
 select * from static_partition_table;
+
+
+dynamic -
+hive> set hive.exec.dynamic.partition.mode=nonstrict;
+hive> create table dynamic_partition_table(id int,age int,gender string,items string,category string,amount int,size string,color string,season string,rating float,subs string) partitioned by (location string);
+
+insert into table dynamic_partition_table partition(location) select id,age,gender,items,category,amount,size,color,season,rating,subs from market_trend where location='Oregon';
+
+
+bucketing - 
+
+
