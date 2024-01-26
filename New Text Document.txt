@@ -35,5 +35,9 @@ insert into table dynamic_partition_table partition(location) select id,age,gend
 
 
 bucketing - 
+create table bucketing_table(id int,age int,gender string,items string,category string,amount int,location string,size string,color string,season string,rating float,subs string) clustered by (amount) into 5 buckets stored as textfile;
+
+insert into bucketing_table select * from market_trend;
+
 
 
