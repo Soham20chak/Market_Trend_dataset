@@ -15,14 +15,14 @@ hadoop fs -put /home/ubh01/Downloads/shopping_trends.csv /home/ubh01/hadoop-2.7.
 
 hive
 use default;
-create table market_trend(id int,age int,gender string,items string,category string,amount int,location string,size string,color string,season string,rating float,subs string) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/hadoop-2.7.1/sbin/marketdata/';
+create table market_trend(id int,age int,gender string,items string,category string,amount int,location string,size string,color string,season string,rating float,subsription string,payment_pref string,shipping_type string,discount string,promo_code string,prev int,preference string,freq string) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/marketdata/';
 
 
 partitioning :
 static -
-create table static_partition_table(id int,age int,gender string,items string,category string,amount int,size string,color string,season string,rating float,subs string) partitioned by (location string);
+create table static_partition_table(id int,age int,gender string,items string,category string,amount int,size string,color string,season string,rating float,subsription string,payment_pref string,shipping_type string,discount string,promo_code string,prev int,preference string,freq string) partitioned by (location string);
 
-insert into table static_partition_table partition(location='Oregon') select id,age,gender,items,category,amount,size,color,season,rating,subs from market_trend where location='Oregon';
+insert into table static_partition_table partition(location='Oregon') select id,age,gender,items.category,amount,size,color,season,rating,subsription,payment_pref,shipping_type,discount,promo_code,prev,preference,freq from market_trend where location='Oregon';
 
 select * from static_partition_table;
 
