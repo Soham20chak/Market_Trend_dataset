@@ -72,7 +72,7 @@ FROM online_market;
 SELECT item, SUM(quantity) AS total_quantity_sold
 FROM online_market
 GROUP BY item
-ORDER BY total_quantity_sold DESC limit 5;
+ORDER BY total_quantity_sold DESC limit 10;
 
 Inventory analysis -
 -- Inventory turnover rate
@@ -81,7 +81,7 @@ FROM online_market;
 
 Customer analysis -
 -- Customer segmentation based on purchasing behavior
-SELECT customer_id, SUM(quantity) AS total_quantity_purchased
+SELECT cust_id, SUM(quantity) AS total_quantity_purchased
 FROM online_market
 GROUP BY cust_id;
 
