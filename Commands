@@ -26,11 +26,40 @@ dynamic -
 hive> set hive.exec.dynamic.partition.mode=nonstrict;
 hive> create table dynamic_partition_table(invoice_no int,stock_code string,cust_id int,item string,quantity int,invoice_date date,unit_price float) partitioned by (country string);
 
-insert into table dynamic_partition_table partition(country) select select invoice_no,stock_code,cust_id,item,quantity,invoice_date,unit_price from online_market where country='United Kingdom';
+insert into table dynamic_partition_table partition(country) select select invoice_no,stock_code,cust_id,item,quantity,invoice_date,unit_price from online_market ;
+
+-- Query total sales revenue by country
+SELECT country, SUM(quantity * unit_price) AS total_sales_revenue
+FROM dynamic_partition_table
+GROUP BY country;
+
+-- Query top selling items in a specific country
+SELECT country, item, SUM(quantity) AS total_quantity_sold
+FROM dynamic_partition_table
+WHERE country = 'United Kingdom'
+GROUP BY country, item
+ORDER BY total_quantity_sold DESC;
+
+-- Query sales trends over time for a specific country
+SELECT country, DATE_TRUNC('month', invoice_date) AS month, SUM(quantity) AS total_quantity_sold
+FROM dynamic_partition_table
+WHERE country = 'Netherlands'
+GROUP BY country, month
+ORDER BY month;
+
 
 bucketing - 
 create table bucketing_table(invoice_no int,stock_code string,item string,quantity int,invoice_date date,unit_price float,cust_id int,country string) clustered by (unit_price) into 10 buckets stored as textfile;
+
 insert into bucketing_table select * from online_market;
 
+SELECT *
+FROM bucketing_table
+WHERE unit_price >= 100;
+
+SELECT COUNT(*)
+FROM bucketing_table
+GROUP BY unit_price;
 
 Queries - 
+
