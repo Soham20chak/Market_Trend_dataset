@@ -61,6 +61,32 @@ SELECT COUNT(*)
 FROM bucketing_table
 GROUP BY unit_price;
 
+Partitioning with bucketing :-
+CREATE TABLE ecommerce_partitioned_bucketed (
+    invoice_no STRING,
+    stockcode STRING,
+    item STRING,
+    quantity INT,
+    invoice_date STRING,
+    unit_price DOUBLE,
+    customer_id STRING
+)
+PARTITIONED BY (country STRING)
+CLUSTERED BY (unit_price) INTO 10 BUCKETS;
+
+INSERT OVERWRITE TABLE ecommerce_partitioned_bucketed
+PARTITION (country)
+SELECT invoice_no, stockcode, item, quantity, invoice_date, unit_price, customer_id, country
+FROM online_market;
+
+aggregating using country and unit_price buckets
+SELECT country, unit_price_bucket, SUM(quantity) AS total_quantity, SUM(quantity * unit_price) AS total_revenue
+FROM (
+    SELECT country, NTILE(10) OVER (PARTITION BY country ORDER BY unit_price) AS unit_price_bucket, quantity, unit_price
+    FROM ecommerce_partitioned_bucketed
+) t
+GROUP BY country, unit_price_bucket;
+
 Queries - 
 Sales Analysis - 
 
