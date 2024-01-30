@@ -122,4 +122,7 @@ SELECT substring(invoice_date,1,2) AS month, SUM(quantity) AS total_quantity_sol
 FROM online_market
 group by month;
 
+SELECT MONTH(FROM_UNIXTIME(UNIX_TIMESTAMP('11-22-2000 8:45', 'MM-dd-yyyy HH:mm'))) AS extracted_month;
+
+
 
