@@ -6,27 +6,27 @@ cd sbin
 ./start-yarn.sh
 jps
 hadoop fs -mkdir -p /home/ubh01/ecommercedata
-hadoop fs -put /home/ubh01/Downloads/shopping_trends.csv /home/ubh01/ecommercedata
+hadoop fs -put /home/ubh01/Downloads/OnlineRetail.csv /home/ubh01/ecommercedata
 
 
 hive
 hive
 use default;
-create table online_market(invoice_no int,stock_code string,item string,quantity int,invoice_date date,unit_price float,cust_id int,country string) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/ecommercedata/';
+create table online_market(invoice_no string,stock_code string,item string,quantity int,invoice_date string,unit_price float,cust_id int,country string) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/ecommercedata/';
 
 partitioning :
 static -
-create table static_partition_table(invoice_no int,stock_code string,cust_id int,item string,quantity int,invoice_date date,unit_price float) partitioned by (country string);
+create table static_partition_table(invoice_no string,stock_code string,cust_id int,item string,quantity int,invoice_date string,unit_price float) partitioned by (country string);
 
-insert into table static_partition_table partition(country='United Kingdom') select invoice_no,stock_code,cust_id,item,quantity,invoice_date,unit_price from online_market where location='United Kingdom';
+insert into table static_partition_table partition(country='France') select invoice_no,stock_code,item,quantity,invoice_date,unit_price,cust_id from online_market where country='France';
 
 select * from static_partition_table;
 
 dynamic -
 hive> set hive.exec.dynamic.partition.mode=nonstrict;
-hive> create table dynamic_partition_table(invoice_no int,stock_code string,cust_id int,item string,quantity int,invoice_date date,unit_price float) partitioned by (country string);
+hive> create table dynamic_partition_table(invoice_no string,stock_code string,cust_id int,item string,quantity int,invoice_date string,unit_price float) partitioned by (country string);
 
-insert into table dynamic_partition_table partition(country) select select invoice_no,stock_code,cust_id,item,quantity,invoice_date,unit_price from online_market ;
+insert into table dynamic_partition_table partition(country) select invoice_no,stock_code,item,quantity,invoice_date,unit_price,cust_id,country from online_market ;
 
 -- Query total sales revenue by country
 SELECT country, SUM(quantity * unit_price) AS total_sales_revenue
