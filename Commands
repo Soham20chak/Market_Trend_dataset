@@ -19,7 +19,8 @@ static -
 create table static_partition_table(invoice_no string,stock_code string,cust_id int,item string,quantity int,invoice_date string,unit_price float) partitioned by (country string);
 
 insert into table static_partition_table partition(country='France') select invoice_no,stock_code,item,quantity,invoice_date,unit_price,cust_id from online_market where country='France';
-
+insert into table static_partition_table partition(country='Netherlands') select invoice_no,stock_code,item,quantity,invoice_date,unit_price,cust_id from online_market where country='Netherlands';
+insert into table static_partition_table partition(country='Australia') select invoice_no,stock_code,item,quantity,invoice_date,unit_price,cust_id from online_market where country='Australia';
 select * from static_partition_table;
 
 dynamic -
