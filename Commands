@@ -42,11 +42,11 @@ GROUP BY country, item
 ORDER BY total_quantity_sold DESC;
 
 -- Query sales trends over time for a specific country
-SELECT country, DATE_TRUNC('month', invoice_date) AS month, SUM(quantity) AS total_quantity_sold
+SELECT country, substring(invoice_date,1,2) AS month, SUM(quantity) AS total_quantity_sold
 FROM dynamic_partition_table
 WHERE country = 'Netherlands'
-GROUP BY country, month
-ORDER BY month;
+GROUP BY country, substring(invoice_date,1,2)
+ORDER BY substring(invoice_date,1,2);
 
 hive>  set hive.log.explain.output=true;
 hive> set hive.exec.reducers.bytes.per.reducer=256000000;
@@ -74,15 +74,15 @@ CREATE TABLE ecommerce_partitioned_bucketed (
     item STRING,
     quantity INT,
     invoice_date STRING,
-    unit_price DOUBLE,
+    unit_price FLOAT,
     customer_id STRING
 )
 PARTITIONED BY (country STRING)
-CLUSTERED BY (unit_price) INTO 10 BUCKETS;
+CLUSTERED BY (unit_price) INTO 15 BUCKETS;
 
 INSERT OVERWRITE TABLE ecommerce_partitioned_bucketed
 PARTITION (country)
-SELECT invoice_no, stockcode, item, quantity, invoice_date, unit_price, customer_id, country
+SELECT invoice_no, stock_code, item, quantity, invoice_date, unit_price, cust_id, country
 FROM online_market;
 
 aggregating using country and unit_price buckets
