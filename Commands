@@ -48,6 +48,11 @@ WHERE country = 'Netherlands'
 GROUP BY country, month
 ORDER BY month;
 
+hive>  set hive.log.explain.output=true;
+hive> set hive.exec.reducers.bytes.per.reducer=256000000;
+select count(*) from online_market where country='France';
+hive> select count(*) from dynamic_partition_table where country='France';
+
 
 bucketing - 
 create table bucketing_table(invoice_no int,stock_code string,item string,quantity int,invoice_date date,unit_price float,cust_id int,country string) clustered by (unit_price) into 10 buckets stored as textfile;
