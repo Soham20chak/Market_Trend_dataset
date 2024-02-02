@@ -7,7 +7,8 @@ cd sbin
 jps
 hadoop fs -mkdir -p /home/ubh01/ecommercedata
 hadoop fs -put /home/ubh01/Downloads/OnlineRetail.csv /home/ubh01/ecommercedata
-
+hadoop fs -mkdir -p /home/ubh01/customerdata
+hadoop fs -put /home/ubh01/Downloads/Customers.csv /home/ubh01/customerdata
 
 hive
 hive
@@ -34,14 +35,14 @@ SELECT country, SUM(quantity * unit_price) AS total_sales_revenue
 FROM dynamic_partition_table
 GROUP BY country;
 
--- Query top selling items in a specific country
+/* Query top selling items in a specific country */
 SELECT country, item, SUM(quantity) AS total_quantity_sold
 FROM dynamic_partition_table
-WHERE country = 'Australia'
+WHERE country = 'France'
 GROUP BY country, item
-ORDER BY SUM(quantity) DESC;
+ORDER BY total_quantity_sold DESC limit 10;
 
--- Monthly Sales Trend by Country
+/* Monthly Sales Trend by Country */
 SELECT country,  case 
      when substring(invoice_date,1,2)='1/' then 'January'
      when substring(invoice_date,1,2)='2/' then 'February'
@@ -57,7 +58,7 @@ SELECT country,  case
     when substring(invoice_date,1,2)='12' then 'December'
      end as Month,SUM(quantity * unit_price) AS monthly_sales
 FROM dynamic_partition_table where country='France'
-GROUP BY country, substring(invoice_date,1,2);
+GROUP BY country, substring(invoice_date,1,2) order by monthly_sales desc;
 
 
 //////-- Query sales trends over time for a specific country
@@ -67,9 +68,9 @@ WHERE country = 'Netherlands'
 GROUP BY country, substring(invoice_date,1,2)
 ORDER BY substring(invoice_date,1,2);/////
 
---customer distribution by country
+/* customer distribution by country */
 SELECT country, COUNT(DISTINCT cust_id) AS num_customers
-FROM dynamic_partition
+FROM dynamic_partition_table
 GROUP BY country;
 
 hive>  set hive.log.explain.output=true;
@@ -79,7 +80,7 @@ hive> select count(*) from dynamic_partition_table where country='France';
 
 
 bucketing - 
-create table bucketing_table(invoice_no int,stock_code string,item string,quantity int,invoice_date date,unit_price float,cust_id int,country string) clustered by (unit_price) into 10 buckets stored as textfile;
+create table bucketing_table(invoice_no int,stock_code string,item string,quantity int,invoice_date date,unit_price float,cust_id int,country string) clustered by (unit_price) into 15 buckets stored as textfile;
 
 insert into bucketing_table select * from online_market;
 
@@ -88,16 +89,23 @@ SELECT count(*)
 FROM bucketing_table
 WHERE unit_price >= 100;
 
+create table bucketing_table_by_customer(invoice_no int,stock_code string,item string,quantity int,invoice_date date,unit_price float,cust_id int,country string) clustered by (cust_id) into 10 buckets stored as textfile;
+
+create table customer(cust_id int,name STRING,email STRING,phone STRING) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/customerdata/';
+
 CREATE TABLE customer_info (
     cust_id INT,
     name STRING,
     email STRING,
+    phone STRING,
     PRIMARY KEY (cust_id)
 )
 CLUSTERED BY (cust_id) INTO 5 BUCKETS
 STORED AS TEXTFILE;
 
--- Join operation between bucketing_table and customer_info
+insert into customer_info select * from customer;
+
+-- Join operation between bucketing_table_by_customer and customer_info
 SELECT b.*, c.name, c.email
 FROM bucketing_table b
 JOIN customer_info c
@@ -130,10 +138,10 @@ aggregating using country and unit_price buckets
 
 EXPLAIN EXTENDED SELECT * FROM ecommerce_partitioned_bucketed WHERE country = 'Australia';
 
---country where they are buying expensive items
-SELECT country, SUM(quantity * unit_price) AS total_revenue
-FROM ecommerce_partitioned_bucketed where unit_price>100
-GROUP BY country order by SUM(quantity * unit_price);
+--compare countries by expensive items they are buying
+SELECT country, count(*) AS no_of_expensive
+FROM ecommerce_partitioned_bucketed where unit_price>100 and country in ('France','Netherlands','United Kingdom')
+group by country order by no_of_expensive;
 
 
 Queries - 
