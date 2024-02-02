@@ -121,7 +121,23 @@ Forecasting and Predictive Analytics:
 -- Sales forecasting
 SELECT substring(invoice_date,1,2), SUM(quantity) AS total_quantity_sold FROM online_market group by substring(invoice_date,1,2);
 
-SELECT MONTH(FROM_UNIXTIME(UNIX_TIMESTAMP('11-22-2000 8:45', 'MM-dd-yyyy HH:mm'))) AS extracted_month;
+
+
+select sum(quantity*unit_price) , 
+    > case 
+    > when substring(invoice_date,1,2)='1/' then 'January'
+    > when substring(invoice_date,1,2)='2/' then 'February'
+    > when substring(invoice_date,1,2)='3/' then 'March'
+    > when substring(invoice_date,1,2)='4/' then 'April'
+    > when substring(invoice_date,1,2)='5/' then 'May'
+    > when substring(invoice_date,1,2)='6/' then 'June'
+    > when substring(invoice_date,1,2)='7/' then 'July'
+    > when substring(invoice_date,1,2)='8/' then 'August'
+    > when substring(invoice_date,1,2)='10' then 'October'
+    > when substring(invoice_date,1,2)='9/' then 'September'
+    > when substring(invoice_date,1,2)='11' then 'November'
+    > when substring(invoice_date,1,2)='12' then 'December'
+    > end as Month from online_market group by substring(invoice_date,1,2); 
 
 
 
