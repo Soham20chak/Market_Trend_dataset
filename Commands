@@ -37,16 +37,40 @@ GROUP BY country;
 -- Query top selling items in a specific country
 SELECT country, item, SUM(quantity) AS total_quantity_sold
 FROM dynamic_partition_table
-WHERE country = 'United Kingdom'
+WHERE country = 'Australia'
 GROUP BY country, item
-ORDER BY total_quantity_sold DESC;
+ORDER BY SUM(quantity) DESC;
 
--- Query sales trends over time for a specific country
+-- Monthly Sales Trend by Country
+SELECT country,  case 
+     when substring(invoice_date,1,2)='1/' then 'January'
+     when substring(invoice_date,1,2)='2/' then 'February'
+     when substring(invoice_date,1,2)='3/' then 'March'
+ when substring(invoice_date,1,2)='4/' then 'April'
+     when substring(invoice_date,1,2)='5/' then 'May'
+     when substring(invoice_date,1,2)='6/' then 'June'
+     when substring(invoice_date,1,2)='7/' then 'July'
+     when substring(invoice_date,1,2)='8/' then 'August'
+    when substring(invoice_date,1,2)='10' then 'October'
+    when substring(invoice_date,1,2)='9/' then 'September'
+    when substring(invoice_date,1,2)='11' then 'November'
+    when substring(invoice_date,1,2)='12' then 'December'
+     end as Month,SUM(quantity * unit_price) AS monthly_sales
+FROM dynamic_partition_table where country='France'
+GROUP BY country, substring(invoice_date,1,2);
+
+
+//////-- Query sales trends over time for a specific country
 SELECT country, substring(invoice_date,1,2) AS month, SUM(quantity) AS total_quantity_sold
 FROM dynamic_partition_table
 WHERE country = 'Netherlands'
 GROUP BY country, substring(invoice_date,1,2)
-ORDER BY substring(invoice_date,1,2);
+ORDER BY substring(invoice_date,1,2);/////
+
+--customer distribution by country
+SELECT country, COUNT(DISTINCT cust_id) AS num_customers
+FROM dynamic_partition
+GROUP BY country;
 
 hive>  set hive.log.explain.output=true;
 hive> set hive.exec.reducers.bytes.per.reducer=256000000;
@@ -59,13 +83,30 @@ create table bucketing_table(invoice_no int,stock_code string,item string,quanti
 
 insert into bucketing_table select * from online_market;
 
-SELECT *
+--no of items whose price is more than 100
+SELECT count(*)
 FROM bucketing_table
 WHERE unit_price >= 100;
 
-SELECT COUNT(*)
-FROM bucketing_table
-GROUP BY unit_price;
+CREATE TABLE customer_info (
+    cust_id INT,
+    name STRING,
+    email STRING,
+    PRIMARY KEY (cust_id)
+)
+CLUSTERED BY (cust_id) INTO 5 BUCKETS
+STORED AS TEXTFILE;
+
+-- Join operation between bucketing_table and customer_info
+SELECT b.*, c.name, c.email
+FROM bucketing_table b
+JOIN customer_info c
+ON b.cust_id = c.cust_id;
+
+EXPLAIN SELECT s.*, c.name, c.email
+FROM sales s
+JOIN customers c
+ON s.cust_id = c.cust_id;
 
 Partitioning with bucketing :-
 CREATE TABLE ecommerce_partitioned_bucketed (
@@ -86,12 +127,14 @@ SELECT invoice_no, stock_code, item, quantity, invoice_date, unit_price, cust_id
 FROM online_market;
 
 aggregating using country and unit_price buckets
-SELECT country, unit_price_bucket, SUM(quantity) AS total_quantity, SUM(quantity * unit_price) AS total_revenue
-FROM (
-    SELECT country, NTILE(10) OVER (PARTITION BY country ORDER BY unit_price) AS unit_price_bucket, quantity, unit_price
-    FROM ecommerce_partitioned_bucketed
-) t
-GROUP BY country, unit_price_bucket;
+
+EXPLAIN EXTENDED SELECT * FROM ecommerce_partitioned_bucketed WHERE country = 'Australia';
+
+--country where they are buying expensive items
+SELECT country, SUM(quantity * unit_price) AS total_revenue
+FROM ecommerce_partitioned_bucketed where unit_price>100
+GROUP BY country order by SUM(quantity * unit_price);
+
 
 Queries - 
 Sales Analysis - 
@@ -124,20 +167,20 @@ SELECT substring(invoice_date,1,2), SUM(quantity) AS total_quantity_sold FROM on
 
 
 select sum(quantity*unit_price) , 
-    > case 
-    > when substring(invoice_date,1,2)='1/' then 'January'
-    > when substring(invoice_date,1,2)='2/' then 'February'
-    > when substring(invoice_date,1,2)='3/' then 'March'
-    > when substring(invoice_date,1,2)='4/' then 'April'
-    > when substring(invoice_date,1,2)='5/' then 'May'
-    > when substring(invoice_date,1,2)='6/' then 'June'
-    > when substring(invoice_date,1,2)='7/' then 'July'
-    > when substring(invoice_date,1,2)='8/' then 'August'
-    > when substring(invoice_date,1,2)='10' then 'October'
-    > when substring(invoice_date,1,2)='9/' then 'September'
-    > when substring(invoice_date,1,2)='11' then 'November'
-    > when substring(invoice_date,1,2)='12' then 'December'
-    > end as Month from online_market group by substring(invoice_date,1,2); 
+    case 
+    when substring(invoice_date,1,2)='1/' then 'January'
+    when substring(invoice_date,1,2)='2/' then 'February'
+    when substring(invoice_date,1,2)='3/' then 'March'
+    when substring(invoice_date,1,2)='4/' then 'April'
+    when substring(invoice_date,1,2)='5/' then 'May'
+    when substring(invoice_date,1,2)='6/' then 'June'
+    when substring(invoice_date,1,2)='7/' then 'July'
+    when substring(invoice_date,1,2)='8/' then 'August'
+    when substring(invoice_date,1,2)='10' then 'October'
+    when substring(invoice_date,1,2)='9/' then 'September'
+    when substring(invoice_date,1,2)='11' then 'November'
+    when substring(invoice_date,1,2)='12' then 'December'
+    end as Month from online_market group by substring(invoice_date,1,2); 
 
 
 
