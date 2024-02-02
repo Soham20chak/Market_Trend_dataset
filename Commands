@@ -100,7 +100,7 @@ CREATE TABLE customer_info (
     phone STRING,
     PRIMARY KEY (cust_id)
 )
-CLUSTERED BY (cust_id) INTO 5 BUCKETS
+CLUSTERED BY (cust_id) INTO 10 BUCKETS
 STORED AS TEXTFILE;
 
 insert into customer_info select * from customer;
