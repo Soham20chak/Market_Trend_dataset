@@ -90,6 +90,7 @@ FROM bucketing_table
 WHERE unit_price >= 100;
 
 create table bucketing_table_by_customer(invoice_no int,stock_code string,item string,quantity int,invoice_date date,unit_price float,cust_id int,country string) clustered by (cust_id) into 10 buckets stored as textfile;
+insert into bucketing_table_by_customer select * from online_market;
 
 create table customer(cust_id int,name STRING,email STRING,phone STRING) row format delimited fields terminated by ',' stored as textfile location '/home/ubh01/customerdata/';
 
@@ -97,8 +98,8 @@ CREATE TABLE customer_info (
     cust_id INT,
     name STRING,
     email STRING,
-    phone STRING,
-    PRIMARY KEY (cust_id)
+    phone STRING
+    
 )
 CLUSTERED BY (cust_id) INTO 10 BUCKETS
 STORED AS TEXTFILE;
@@ -106,10 +107,10 @@ STORED AS TEXTFILE;
 insert into customer_info select * from customer;
 
 -- Join operation between bucketing_table_by_customer and customer_info
-SELECT b.*, c.name, c.email
-FROM bucketing_table b
+SELECT b.cust_id, c.name, c.email,b.item,b.quantity
+FROM bucketing_table_by_customer b
 JOIN customer_info c
-ON b.cust_id = c.cust_id;
+ON b.cust_id = c.cust_id limit 20;
 
 EXPLAIN SELECT s.*, c.name, c.email
 FROM sales s
