@@ -1,0 +1,78 @@
+cd hadoop-2.7.1
+cd sbin
+./start-dfs.sh
+./start-yarn.sh
+jps
+
+use default;
+describe table online_market;
+select * from online_market limit 10;
+
+set hive.cli.print.header=true;
+
+-- Total sales revenue
+SELECT SUM(quantity * unit_price) AS total_sales_revenue FROM online_market;
+
+-- Top selling items
+SELECT item, SUM(quantity) AS total_quantity_sold FROM online_market GROUP BY item ORDER BY total_quantity_sold DESC limit 10;
+
+show partitions static_partition_table;
+
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+show partitions dynamic_partition_table;
+
+-- Query total sales revenue by country
+SELECT country, SUM(quantity * unit_price) AS total_sales_revenue
+FROM dynamic_partition_table
+GROUP BY country;
+
+-- Query top selling items in a specific country
+SELECT country, item, SUM(quantity) AS total_quantity_sold
+FROM dynamic_partition_table
+WHERE country = 'France'
+GROUP BY country, item
+ORDER BY total_quantity_sold DESC limit 10;
+
+-- Monthly Sales Trend by Country */
+SELECT country,  case 
+     when substring(invoice_date,1,2)='1/' then 'January'
+     when substring(invoice_date,1,2)='2/' then 'February'
+     when substring(invoice_date,1,2)='3/' then 'March'
+ when substring(invoice_date,1,2)='4/' then 'April'
+     when substring(invoice_date,1,2)='5/' then 'May'
+     when substring(invoice_date,1,2)='6/' then 'June'
+     when substring(invoice_date,1,2)='7/' then 'July'
+     when substring(invoice_date,1,2)='8/' then 'August'
+    when substring(invoice_date,1,2)='10' then 'October'
+    when substring(invoice_date,1,2)='9/' then 'September'
+    when substring(invoice_date,1,2)='11' then 'November'
+    when substring(invoice_date,1,2)='12' then 'December'
+     end as Month,SUM(quantity * unit_price) AS monthly_sales
+FROM dynamic_partition_table where country='France'
+GROUP BY country, substring(invoice_date,1,2) order by monthly_sales desc;
+
+-- customer distribution by country */
+SELECT country, COUNT(DISTINCT cust_id) AS num_customers
+FROM dynamic_partition_table
+GROUP BY country;
+
+-- Bucketing
+
+--no of items whose price is more than 500
+SELECT count(*)
+FROM bucketing_table
+WHERE unit_price > 500;
+
+-- Join operation between bucketing_table_by_customer and customer_info
+SELECT b.cust_id, c.name, c.email,b.item,b.quantity
+FROM bucketing_table_by_customer b
+JOIN customer_info c
+ON b.cust_id = c.cust_id limit 20;
+
+--partitioning + bucketing
+--compare countries by expensive items they are buying
+SELECT country, count(*) AS no_of_expensive
+FROM ecommerce_partitioned_bucketed where unit_price>100 and country in ('France','Netherlands','United Kingdom')
+group by country order by no_of_expensive;
+
