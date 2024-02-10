@@ -59,9 +59,16 @@ GROUP BY country;
 
 -- Bucketing
 
+ANALYZE TABLE online_market COMPUTE STATISTICS;
+ANALYZE TABLE bucketing_table COMPUTE STATISTICS;
+
 --no of items whose price is more than 500
 SELECT count(*)
 FROM bucketing_table
+WHERE unit_price > 500;
+
+SELECT count(*)
+FROM online_market
 WHERE unit_price > 500;
 
 -- Join operation between bucketing_table_by_customer and customer_info
